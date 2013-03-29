@@ -7,21 +7,24 @@ oauth = require('oauth')
 
 class Twitter extends Adapter
 
-  send: (user, strings...) ->
-    console.log "Sending strings to user: " + user.screen_name
+  send: (envelope, strings...) ->
+    @robot.logger.info "Sending strings to user: #{envelope.user.name} (#{envelope.user.id})"
+    #Envelope has the properties room, message, user
+
     strings.forEach (str) =>
       text = str
       tweetsText = str.split('\n')
       tweetsText.forEach (tweetText) =>
-        @bot.send(user.user.user, tweetText, user.user.status_id)
+        @bot.send envelope.user.name, tweetText, envelope.user.status_id
 
-  reply: (user, strings...) ->
-    console.log "Replying"
+  reply: (envelope, strings...) ->
+    @robot.logger.info "Replying to user: #{envelope.user.name} (#{envelope.user.id})"
     strings.forEach (text) =>
-      @bot.send(user, text)
+      console.log text
+      @bot.send envelope.user.name, text
 
   command: (command, strings...) ->
-    console.log "Command" + command
+    @robot.logger.info "Command: #{command}"
     @bot.send command, strings...
 
   run: ->
@@ -33,22 +36,29 @@ class Twitter extends Adapter
       token: process.env.HUBOT_TWITTER_TOKEN
       tokensecret: process.env.HUBOT_TWITTER_TOKEN_SECRET
 
+    @selective = process.env.HUBOT_SELECTIVE_ROLE
+    @robot.logger.debug "Selective Role: #{@selective}"
+
     bot = new TwitterStreaming(options)
-    @x = 0
-    bot.tweet self.robot.name, (data, err) ->
-      self.x += 1
-      reg = new RegExp('@' + self.robot.name, 'i')
-      console.log "received #{data.text} from #{data.user.screen_name}"
 
-      msg = data.text.replace reg, self.robot.name
-      tmsg = new TextMessage({ user: data.user.screen_name, status_id: data.id_str }, msg)
-      self.receive tmsg
+    bot.tweet @robot.name, (data, err) =>
       if err
-        console.log "received error: #{err}"
+        @robot.logger.warning "received error: #{err}"
+        return
 
-    @bot = bot
+      reg = new RegExp "@#{@robot.name}", 'i'
+      @robot.logger.debug "received #{data.text} from #{data.user.screen_name}"
 
-    self.emit "connected"
+      message = data.text.replace reg, @robot.name
+      user = @robot.brain.userForId data.user.id_str, name: data.user.screen_name, room: "Twitter"
+      theMessage = new TextMessage user, message, data.id_str
+      @robot.logger.debug "hubot command: #{message}"
+      @robot.logger.debug theMessage
+      @receive theMessage
+
+  @bot = bot
+
+  @emit "connected"
 
 exports.use = (robot) ->
   new Twitter robot
@@ -57,7 +67,7 @@ exports.use = (robot) ->
 class TwitterStreaming extends EventEmitter
 
   self = @
-  constructor: (options) ->
+  constructor: (@robot, options) ->
     if options.token? and options.secret? and options.key? and options.tokensecret?
       @token = options.token
       @secret = options.secret
@@ -77,12 +87,15 @@ class TwitterStreaming extends EventEmitter
   tweet: (track, callback) ->
     @post "/1.1/statuses/filter.json?track=#{track}", '', callback
 
-  send: (user, tweetText, in_reply_to_status_id) ->
-    console.log "send twitt to #{user} with text #{tweetText}"
-    @consumer.post "https://api.twitter.com/1.1/statuses/update.json", @token, @tokensecret, { status: "@#{user} #{tweetText}", in_reply_to_status_id: in_reply_to_status_id }, 'UTF-8', (error, data, response) ->
+  send: (user, status_id, tweetText) ->
+    @robot.logger.info "send twitt to #{user} with text #{tweetText} in response to #{status_id}"
+    @robot.logger.debug { status: "@#{user} #{tweetText}", in_reply_to_status_id: status_id }
+    @consumer.post "https://api.twitter.com/1.1/statuses/update.json", @token, @tokensecret, { status: "@#{user} #{tweetText}", in_reply_to_status_id: status_id }, 'UTF-8', (error, data, response) =>
       if error
-        console.log "twitter send error: #{error} #{data}"
-      console.log "Status #{response.statusCode}"
+        @robot.logger.warn "twitter send error: #{error} #{data}"
+      @robot.logger.debug "Status #{response.statusCode}"
+      @robot.logger.debug "Data:"
+      @robot.logger.debug data
 
   # Convenience HTTP Methods for posting on behalf of the token"d user
   get: (path, callback) ->
@@ -92,29 +105,29 @@ class TwitterStreaming extends EventEmitter
     @request "POST", path, body, callback
 
   request: (method, path, body, callback) ->
-    console.log "https://#{@domain}#{path}, #{@token}, #{@tokensecret}, null"
+    @robot.logger.debug "https://#{@domain}#{path}, #{@token}, #{@tokensecret}, null"
 
-    request = @consumer.get "https://#{@domain}#{path}", @token, @tokensecret, null
+  request = @consumer.get "https://#{@domain}#{path}", @token, @tokensecret, null
 
-    request.on "response", (response) ->
-      response.on "data", (chunk) ->
-        parseResponse chunk + '', callback
+  request.on "response", (response) ->
+    response.on "data", (chunk) ->
+      parseResponse chunk + '', callback
 
-      response.on "end", (data) ->
-        console.log 'end request'
+    response.on "end", (data) ->
+      @robot.logger.debug 'end request'
 
-      response.on "error", (data) ->
-        console.log 'error ' + data
+    response.on "error", (data) ->
+      @robot.logger.debug 'error ' + data
 
-    request.end()
+  request.end()
 
-    parseResponse = (data, callback) ->
-      while ((index = data.indexOf('\r\n')) > -1)
-        json = data.slice(0, index)
-        data = data.slice(index + 2)
+  parseResponse = (data, callback) =>
+    while ((index = data.indexOf('\r\n')) > -1)
+      json = data.slice(0, index)
+      data = data.slice(index + 2)
 
-        if json.length > 0
-          try
-            callback JSON.parse(json), null
-          catch err
-            console.log err
+      if json.length > 0
+        try
+          callback JSON.parse(json), null
+        catch err
+          @robot.logger.error json
