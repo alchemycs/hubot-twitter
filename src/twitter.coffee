@@ -15,13 +15,13 @@ class Twitter extends Adapter
       text = str
       tweetsText = str.split('\n')
       tweetsText.forEach (tweetText) =>
-        @bot.send envelope.user.name, tweetText, envelope.user.status_id
+        @bot.send envelope.user.name, envelope.message.id, tweetText
 
   reply: (envelope, strings...) ->
     @robot.logger.info "Replying to user: #{envelope.user.name} (#{envelope.user.id})"
     strings.forEach (text) =>
       console.log text
-      @bot.send envelope.user.name, text
+      @bot.send envelope.user.name, envelope.message.id, text
 
   command: (command, strings...) ->
     @robot.logger.info "Command: #{command}"
@@ -39,7 +39,7 @@ class Twitter extends Adapter
     @selective = process.env.HUBOT_SELECTIVE_ROLE
     @robot.logger.debug "Selective Role: #{@selective}"
 
-    bot = new TwitterStreaming(options)
+    bot = new TwitterStreaming(@robot, options)
 
     bot.tweet @robot.name, (data, err) =>
       if err
@@ -56,9 +56,9 @@ class Twitter extends Adapter
       @robot.logger.debug theMessage
       @receive theMessage
 
-  @bot = bot
+    @bot = bot
 
-  @emit "connected"
+    @emit "connected"
 
 exports.use = (robot) ->
   new Twitter robot
@@ -107,19 +107,19 @@ class TwitterStreaming extends EventEmitter
   request: (method, path, body, callback) ->
     @robot.logger.debug "https://#{@domain}#{path}, #{@token}, #{@tokensecret}, null"
 
-  request = @consumer.get "https://#{@domain}#{path}", @token, @tokensecret, null
+    request = @consumer.get "https://#{@domain}#{path}", @token, @tokensecret, null
 
-  request.on "response", (response) ->
-    response.on "data", (chunk) ->
-      parseResponse chunk + '', callback
+    request.on "response", (response) ->
+      response.on "data", (chunk) ->
+        parseResponse chunk + '', callback
 
-    response.on "end", (data) ->
-      @robot.logger.debug 'end request'
+      response.on "end", (data) ->
+        @robot.logger.debug 'end request'
 
-    response.on "error", (data) ->
-      @robot.logger.debug 'error ' + data
+      response.on "error", (data) ->
+        @robot.logger.debug 'error ' + data
 
-  request.end()
+    request.end()
 
   parseResponse = (data, callback) =>
     while ((index = data.indexOf('\r\n')) > -1)
