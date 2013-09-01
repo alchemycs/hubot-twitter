@@ -39,6 +39,9 @@ class Twitter extends Adapter
     @selective = process.env.HUBOT_SELECTIVE_ROLE
     @robot.logger.debug "Selective Role: #{@selective}"
 
+    @selective = process.env.HUBOT_SELECTIVE_ROLE
+    @robot.logger.debug "Selective Role: #{@selective}"
+
     bot = new TwitterStreaming(@robot, options)
 
     bot.tweet @robot.name, (data, err) =>
@@ -54,7 +57,15 @@ class Twitter extends Adapter
       theMessage = new TextMessage user, message, data.id_str
       @robot.logger.debug "hubot command: #{message}"
       @robot.logger.debug theMessage
-      @receive theMessage
+
+      if not @selective
+        @robot.logger.debug "Not selective, processing message"
+        @receive theMessage
+      else if @robot.auth.hasRole(theMessage.user, @selective)
+        @robot.logger.debug "User has the selective '#{@selective}' role" if @selective
+        @receive theMessage
+      else
+        @robot.logger.debug "Ignoring user, does not have the selective '#{@selective}' role"
 
     @bot = bot
 
