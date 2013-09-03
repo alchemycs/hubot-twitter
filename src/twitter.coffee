@@ -23,10 +23,6 @@ class Twitter extends Adapter
       console.log text
       @bot.send envelope.user.name, envelope.message.id, text
 
-  command: (command, strings...) ->
-    @robot.logger.info "Command: #{command}"
-    @bot.send command, strings...
-
   run: ->
     self = @
 
