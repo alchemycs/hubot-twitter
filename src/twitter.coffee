@@ -137,4 +137,5 @@ class TwitterStreaming extends EventEmitter
         try
           callback JSON.parse(json), null
         catch err
+          @robot.logger.error err
           @robot.logger.error json
