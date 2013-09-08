@@ -9,6 +9,12 @@ class Twitter extends Adapter
 
   send: (envelope, strings...) ->
     @robot.logger.info "Sending strings to user: #{envelope.user.name} (#{envelope.user.id})"
+    if envelope.message.message
+      # todo : figure out why this is
+      @robot.logger.warning "Doing weird catchall hack to fix message id: #{envelope.message.message.id}"
+      envelope.message.id = envelope.message.message.id
+    @robot.logger.debug "Message id #{envelope.message.id}"
+    @robot.logger.debug envelope.message
     #Envelope has the properties room, message, user
 
     strings.forEach (str) =>
