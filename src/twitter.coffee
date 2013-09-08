@@ -99,10 +99,11 @@ class TwitterStreaming extends EventEmitter
     @robot.logger.debug { status: "@#{user} #{tweetText}", in_reply_to_status_id: status_id }
     @consumer.post "https://api.twitter.com/1.1/statuses/update.json", @token, @tokensecret, { status: "@#{user} #{tweetText}", in_reply_to_status_id: status_id }, 'UTF-8', (error, data, response) =>
       if error
-        @robot.logger.warn "twitter send error: #{error} #{data}"
-      @robot.logger.debug "Status #{response.statusCode}"
-      @robot.logger.debug "Data:"
-      @robot.logger.debug data
+        @robot.logger.warning "twtr err:", error
+      else
+        @robot.logger.debug "Status #{response.statusCode}"
+        @robot.logger.debug "Data:"
+        @robot.logger.debug data
 
   # Convenience HTTP Methods for posting on behalf of the token"d user
   get: (path, callback) ->
