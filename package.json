@@ -2,6 +2,9 @@
   "name": "hubot-twitter",
   "version": "2.0.4",
   "author": "Mathilde Lemee",
+  "contributors": [
+      "Michael McHugh <developer@yrucalling.me>"
+  ],
   "keywords": [
     "github hubot twitter adapter"
   ],
@@ -17,14 +20,10 @@
     "url": "git://github.com/mathildelemee/hubot-twitter.git"
   },
   "dependencies": {
-    "oauth": "~0.9.10"
+    "oauth": "~0.9.12"
   },
   "devDependencies": {
-    "coffee-script": "~1.6.2"
+    "coffee-script": "~1.7.1"
   },
-  "main": "./src/twitter",
-  "engine": "node > 0.6.0 < 0.7.0",
-  "engines": {
-    "node": "*"
-  }
+  "main": "./src/twitter"
 }
