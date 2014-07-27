@@ -41,9 +41,6 @@ class Twitter extends Adapter
     @selective = process.env.HUBOT_SELECTIVE_ROLE
     @robot.logger.debug "Selective Role: #{@selective}"
 
-    @selective = process.env.HUBOT_SELECTIVE_ROLE
-    @robot.logger.debug "Selective Role: #{@selective}"
-
     bot = new TwitterStreaming(@robot, options)
 
     bot.tweet @robot.name, (data, err) =>
@@ -116,15 +113,19 @@ class TwitterStreaming extends EventEmitter
     @request "GET", path, null, callback
 
   post: (path, body, callback) ->
-    @request "POST", path, body, callback
+    console.log "Doing POST to: #{path} "
+    @request "POST", path, body, (e, d) ->
+      console.log "post response to #{path} has", e, d
+      callback e, d
 
   request: (method, path, body, callback) ->
-    @robot.logger.debug "https://#{@domain}#{path}, #{@token}, #{@tokensecret}, null"
+    @robot.logger.debug "#{method} https://#{@domain}#{path}, #{@token}, #{@tokensecret}, null"
 
     request = @consumer.get "https://#{@domain}#{path}", @token, @tokensecret, null
 
     request.on "response", (response) ->
       response.on "data", (chunk) ->
+#        console.log 'got a chunk of data', chunk, chunk.toString 'utf8'
         parseResponse chunk + '', callback
 
       response.on "end", (data) ->
