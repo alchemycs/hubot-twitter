@@ -1,9 +1,13 @@
-# Hubot Twitter Adapter
+# Hubot Alternative Twitter Adapter
 
 ## Description
 
-This is the [Twitter](http://twitter.com) adapter for hubot that allows you to
-send an tweet to your Hubot and he will send an tweet back with the response.
+This is an alternative [Twitter](http://twitter.com) adapter for hubot that allows you to
+send a tweet to your hubot and send tweet back with the response.
+
+It can also configure the adapter to only respond to whitelisted users. This requires that the `roles.coffee` script
+is enabled and configured. The value of the `HUBOT_SELECTIVE_ROLE` environment variable will restrict the adapter to
+only process messages from user with that role.
 
 ## Installation
 
@@ -25,6 +29,7 @@ You will need to set some environment variables to use this adapter.
     % heroku config:add HUBOT_TWITTER_SECRET="secret"
     % heroku config:add HUBOT_TWITTER_TOKEN="token"
     % heroku config:add HUBOT_TWITTER_TOKEN_SECRET="secret"
+    % heroku config:add HUBOT_SELECTIVE_ROLE="approved follower"
 
 ### Non-Heroku environment variables
 
@@ -32,9 +37,12 @@ You will need to set some environment variables to use this adapter.
     % export HUBOT_TWITTER_SECRET="secret"
     % export HUBOT_TWITTER_TOKEN="token"
     % export HUBOT_TWITTER_TOKEN_SECRET="secret"
+    % export HUBOT_SELECTIVE_ROLE="approved follower"
 
-Then you will need to set the HTTP endpoint on Twilio to point to your server
-and make sure the request type is set to `GET`.
+##TODO
+
+* Respond to direct messages with direct replies
+
 
 ## Contribute
 
@@ -42,5 +50,5 @@ Just send pull request if needed or fill an issue !
 
 ## Copyright
 
-Copyright &copy; Mathilde Lemee. See LICENSE for details.
+Copyright © Michael McHugh. See LICENSE for details.
 

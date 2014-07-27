@@ -1,29 +1,31 @@
 {
-  "name": "hubot-twitter",
-  "version": "2.0.4",
-  "author": "Mathilde Lemee",
+  "name": "hubot-twitter-alt",
+  "version": "1.0.0",
+  "author": "Michael McHugh <developer@yrucalling.me>",
   "contributors": [
-      "Michael McHugh <developer@yrucalling.me>"
+    "Mathilde Lemee"
   ],
   "keywords": [
-    "github hubot twitter adapter"
+    "github hubot alternative twitter adapter"
   ],
-  "description": "A Twitter adapter for hubot",
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "http://github.com/tombell/hubot-twilio/raw/master/LICENSE"
-    }
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/mathildelemee/hubot-twitter.git"
-  },
+  "description": "An alternative Twitter adapter for hubot",
   "dependencies": {
     "oauth": "~0.9.12"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1"
   },
-  "main": "./src/twitter"
+  "main": "./src/twitter",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alchemycs/hubot-twitter.git"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/alchemycs/hubot-twitter/issues"
+  },
+  "homepage": "https://github.com/alchemycs/hubot-twitter"
 }
